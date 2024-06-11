@@ -1,0 +1,14 @@
+dbptm_info.tsv filter=lfs diff=lfs merge=lfs -text
+idmapping_2024_05_23_iptm.fasta filter=lfs diff=lfs merge=lfs -text
+psp_info_ord.tsv filter=lfs diff=lfs merge=lfs -text
+psp_uniprot_ids.tsv filter=lfs diff=lfs merge=lfs -text
+ub_site_complete.txt filter=lfs diff=lfs merge=lfs -text
+ub_sort_all_info.txt.zip filter=lfs diff=lfs merge=lfs -text
+idmapping_2024_05_21_psp.fasta filter=lfs diff=lfs merge=lfs -text
+iptm_uniprot_ids.tsv filter=lfs diff=lfs merge=lfs -text
+plmd_info.tsv.zip filter=lfs diff=lfs merge=lfs -text
+psp_id.txt.zip filter=lfs diff=lfs merge=lfs -text
+psp_info.tsv filter=lfs diff=lfs merge=lfs -text
+iptm_info.tsv filter=lfs diff=lfs merge=lfs -text
+ms_100.fasta filter=lfs diff=lfs merge=lfs -text
+ub_sort_two_info.txt filter=lfs diff=lfs merge=lfs -text
