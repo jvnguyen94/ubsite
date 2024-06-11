@@ -1,22 +1,23 @@
+
 #%%
 ######################################################################################
 # Libraries
 ######################################################################################
-from os.path import isfile, join
+#from os.path import isfile, join
 from os import listdir
-import math
-import random
+#import math
+#import random
 from bio_embeddings.embed import ProtTransBertBFDEmbedder, SeqVecEmbedder
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import os
-import glob
+#import glob
 from tqdm import tqdm
-import pathlib
+#import pathlib
 
 import biographs as bg
-from Bio import SeqIO
+#from Bio import SeqIO
 from Bio.PDB.PDBParser import PDBParser
 
 import networkx as nx
@@ -141,7 +142,7 @@ def get_ProtBertEmbedder(seq):
 def get_file_names(root_dir):
 
     file_name_path = [str(root_dir)+str(f)
-                      for f in os.listdir(root_dir) if not f.startswith('.')]
+                    for f in os.listdir(root_dir) if not f.startswith('.')]
     fn = [f for f in file_name_path if str(f).endswith(".pdb")]
 
     return fn
@@ -154,16 +155,21 @@ def get_file_names(root_dir):
 if __name__ == "__main__":
 
     # Main folder where repository lives
-    folder_path = "/Users/nguyjust/Library/CloudStorage/OneDrive-OregonHealth&ScienceUniversity/ubsite/"
-    file_names = get_file_names(folder_path + '../af_struc/')
+    #folder_path = "/Users/nguyjust/Library/CloudStorage/OneDrive-OregonHealth&ScienceUniversity/ubsite/"
+    folder_path = "/Users/nguyjust/Documents/ubsite/"
+    file_names = get_file_names('/Users/nguyjust/Documents/af_struc/')
 
     # Read in information for protein for site specific data
     psp_df = pd.read_csv(folder_path + 'data/psp_info.tsv',
-                         sep="\t", low_memory=False)
+                        sep="\t", low_memory=False)
+    psp_df = pd.read_csv(folder_path + 'data/psp_info.tsv',
+                        sep="\t", low_memory=False)
     ub_list = psp_df[['uniprot_id', 'ub_mod_loc']].copy()
     ub_list.rename(columns={'uniprot_id': 'protein',
                             'ub_mod_loc': 'site'}, inplace=True)
 
+    ub_list.rename(columns={'uniprot_id': 'protein',
+                'ub_mod_loc': 'site'}, inplace=True)
     count = 0
 
     for ii in tqdm(file_names):
@@ -181,18 +187,24 @@ if __name__ == "__main__":
         else:
             pass
 
-        mat = get_adjacency(ii)
-        # print(mat)
+            mat = get_adjacency(ii)
+            # print(mat)
 
-        ub_label = get_ubsite(seq, ub_list)
-        edge_index = get_edgeindex(ii, mat)
+            ub_label = get_ubsite(seq, ub_list)
+            edge_index = get_edgeindex(ii, mat)
 
-        # print(ub_label)
-        data = Data(x=torch.tensor(node_feats, dtype=torch.float32),
-                    y=torch.tensor(ub_label, dtype=torch.float32),
-                    edge_index=torch.tensor(edge_index, dtype=torch.long))
+            # print(ub_label)
+            data = Data(x=torch.tensor(node_feats, dtype=torch.float32),
+                        y=torch.tensor(ub_label, dtype=torch.float32),
+                        edge_index=torch.tensor(edge_index, dtype=torch.long))
 
-        torch.save(data, "../processed/" + ft_embed + f'_{get_id(ii)}.pt')
-        # print(data)
+            torch.save(data, "../processed/" + ft_embed + f'_{get_id(ii)}.pt')
+            # print(data)
 
-        count += 1
+            count += 1
+
+# %%
+
+
+# %%
+
