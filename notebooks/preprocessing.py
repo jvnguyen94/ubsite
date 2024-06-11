@@ -42,6 +42,7 @@ ressymbl = {'ALA': 'A', 'CYS': 'C', 'ASP': 'D', 'GLU': 'E', 'PHE': 'F', 'GLY': '
             'MET': 'M', 'ASN': 'N', 'PRO': 'P', 'GLN': 'Q', 'ARG': 'R', 'SER': 'S', 'THR': 'T', 'VAL': 'V', 'TRP': 'W', 'TYR': 'Y'}
 
 # get structure from a pdb file
+    # Uses biopython
 def get_structure(pdb_file):
     parser = PDBParser()
     structure = parser.get_structure(get_id(pdb_file), pdb_file)
@@ -56,18 +57,15 @@ def get_sequence(structure):
                 if residue.get_resname() in ressymbl.keys():
                     sequence = sequence + ressymbl[residue.get_resname()]
     return sequence
+    # One hot encoding for symbols
 
-
-def get_ubsite(sequence, df):
+def get_ubsite(sequence, position):
     n = len(sequence)
     ub_array = np.zeros((n,))
-    ub_sites = df[df['protein'] == get_id(ii)]['site'].tolist()
-    ub_sites = [ii-1 for ii in ub_sites]
-    ub_array[ub_sites] = 1
+    ub_array[position] = 1
 
     return ub_array
 
-# One hot encoding for symbols
 def get_one_hot_symbftrs(sequence):
     one_hot_symb = np.zeros((len(sequence), len(pro_res_table)))
     row = 0
@@ -99,11 +97,26 @@ def get_edgeindex(pdb_file, adjacency_mat):
     edge_ind.append(a)
     edge_ind.append(b)
     return torch.tensor(np.array(edge_ind), dtype=torch.long)
+# Residue features calculated from pcp_dict
+
+def get_res_ftrs(sequence):
+    res_ftrs_out = []
+    for res in sequence:
+        res_ftrs_out.append(pcp_dict[res])
+    res_ftrs_out = np.array(res_ftrs_out)
+    # print(res_ftrs_out.shape)
+    return torch.tensor(res_ftrs_out, dtype=torch.float)
 
 def get_id(pdb_file):
     
     return pdb_file.split("/")[-1].split('.')[-1]
 
+# total features after concatenating one_hot_symbftrs and res_ftrs
+
+def get_node_ftrs(sequence):
+    one_hot_symb = one_hot_symbftrs(sequence)
+    res_ftrs_out = res_ftrs(sequence)
+    return torch.tensor(np.hstack((one_hot_symb, res_ftrs_out)), dtype=torch.float)
 
 def get_id(pdb_file):
     pdb_id = pdb_file.split(".")[-2].split('/')[-1]
@@ -137,57 +150,71 @@ def get_file_names(root_dir):
     fn = [f for f in file_name_path if str(f).endswith(".pdb")]
 
     return fn
-
+#%%
 
 #%%
 ######################################################################################
 # Main
 ######################################################################################
-if __name__ == "__main__":
+#if __name__ == "__main__":
 
-    # Main folder where repository lives
+    ## Main folder where repository lives
     folder_path = "/Users/nguyjust/Library/CloudStorage/OneDrive-OregonHealth&ScienceUniversity/ubsite/"
-    file_names = get_file_names(folder_path + '../af_struc/')
+    
+    ## Get all the AF file names
+    file_names = get_file_names(folder_path+ 'af_pred/')
+    #print(file_names)
 
-    # Read in information for protein for site specific data
+    ## Read in information for protein for site specific data
     psp_df = pd.read_csv(folder_path + 'data/psp_info.tsv',
                         sep="\t", low_memory=False)
     ub_list = psp_df[['uniprot_id', 'ub_mod_loc']].copy()
-    ub_list.rename(columns={'uniprot_id': 'protein',
+    ub_list.rename(columns={'acc_id': 'protein',
                             'ub_mod_loc': 'site'}, inplace=True)
-
+    
     count = 0
-
     for ii in tqdm(file_names):
         structure = get_structure(ii)
         seq = get_sequence(structure)
+        one_hot_ftrs = get_one_hot_symbftrs(seq)
+'''
+    file_names = []
+    count = 0
 
-        ft_embed = "onehot"
+    for file in tqdm(file_names):
 
-        if ft_embed == "onehot":
-            node_feats = get_one_hot_symbftrs(seq)
-        elif ft_embed == "seqvec":
-            node_feats = get_SeqVecEmbedder(seq)
-        elif ft_embed == "protbert":
-            node_feats = get_ProtBertEmbedder(seq)
-        else:
-            pass
-
-        mat = get_adjacency(ii)
+        # print(self._get_SeqVecEmbedder(seq))
+        # node features extracted
+        node_feats = self._get_one_hot_symbftrs(seq)
+        # print(node_feats)
+        # edge-index extracted
+        mat = self._get_adjacency(file)
         # print(mat)
 
-        ub_label = get_ubsite(seq, ub_list)
-        edge_index = get_edgeindex(ii, mat)
-
-
+        edge_index = self._get_edgeindex(file, mat)
+        # print(f'Node features size :{torch.Tensor.size(node_feats)}')
+        # print(f'Matrix size :{mat.shape}')
+        # create data object
+        # ADD Y = TARGET UB SITE AS binary fts (0./1)
+        pos = ub_list.loc[ub_list['protein']
+                          == self._get_id(file), 'site']
+        # print(pos)
+        ub_label = self._get_ubsite(seq, pos)
         # print(ub_label)
         data = Data(x=torch.tensor(node_feats, dtype=torch.float32),
                     y=torch.tensor(ub_label, dtype=torch.float32),
                     edge_index=torch.tensor(edge_index, dtype=torch.long))
-        
-        torch.save(data, "../processed/" + ft_embed + f'_{get_id(ii)}.pt')
-        #print(data)
-        
+        # print(data)
         count += 1
+        print(count)
+        # print("asdf")
+        # data_list.append(data)
+        # self.processed_file_names.append(
+        #     folder_path + "processed/" + str(ub_list[protein])
+        # torch.save(data, "./d/processed/" + f'data_{count}.pt')
 
-# %%
+        # return data_list
+
+    
+    print("")
+    '''
